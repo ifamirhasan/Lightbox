@@ -248,16 +248,18 @@ open class LightboxController: UIViewController {
     let preloadIndicies = calculatePreloadIndicies()
 
     for i in 0..<initialImages.count {
-      let pageView = pageViews[i]
-      if preloadIndicies.contains(i) {
-        if type(of: pageView.image) == LightboxImageStub.self {
-          pageView.update(with: initialImages[i])
+        if i <= pageViews.count-1 {
+            let pageView = pageViews[i]
+            if preloadIndicies.contains(i) {
+                if type(of: pageView.image) == LightboxImageStub.self {
+                    pageView.update(with: initialImages[i])
+                }
+            } else {
+                if type(of: pageView.image) != LightboxImageStub.self {
+                    pageView.update(with: LightboxImageStub())
+                }
+            }
         }
-      } else {
-        if type(of: pageView.image) != LightboxImageStub.self {
-          pageView.update(with: LightboxImageStub())
-        }
-      }
     }
   }
 
@@ -446,10 +448,10 @@ extension LightboxController: HeaderViewDelegate {
   }
 
   func headerView(_ headerView: HeaderView, didPressCloseButton closeButton: UIButton) {
-    closeButton.isEnabled = false
-    presented = false
-    dismissalDelegate?.lightboxControllerWillDismiss(self)
-    dismiss(animated: true, completion: nil)
+//    closeButton.isEnabled = false
+//    presented = false
+//    dismissalDelegate?.lightboxControllerWillDismiss(self)
+//    dismiss(animated: true, completion: nil)
   }
 }
 
