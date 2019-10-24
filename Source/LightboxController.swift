@@ -54,6 +54,7 @@ open class LightboxController: UIViewController {
   // MARK: - Public views
     
     public var closeHandler: (() -> Void)?
+    public var deleteHandler: (() -> Void)?
 
   open fileprivate(set) lazy var headerView: HeaderView = { [unowned self] in
     let view = HeaderView()
@@ -447,6 +448,8 @@ extension LightboxController: HeaderViewDelegate {
       self.currentPage = Int(self.scrollView.contentOffset.x / self.view.bounds.width)
       deleteButton.isEnabled = true
     }
+    
+    self.deleteHandler?()
   }
 
   func headerView(_ headerView: HeaderView, didPressCloseButton closeButton: UIButton) {
