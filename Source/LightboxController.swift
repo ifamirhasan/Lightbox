@@ -52,6 +52,8 @@ open class LightboxController: UIViewController {
   }()
 
   // MARK: - Public views
+    
+    public var closeHandler: (() -> Void)?
 
   open fileprivate(set) lazy var headerView: HeaderView = { [unowned self] in
     let view = HeaderView()
@@ -452,6 +454,7 @@ extension LightboxController: HeaderViewDelegate {
 //    presented = false
 //    dismissalDelegate?.lightboxControllerWillDismiss(self)
 //    dismiss(animated: true, completion: nil)
+    self.closeHandler?()
   }
 }
 
