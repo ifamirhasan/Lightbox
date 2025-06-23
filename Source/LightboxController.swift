@@ -1,18 +1,30 @@
 import UIKit
 
-public protocol LightboxControllerPageDelegate: class {
-
+public protocol LightboxControllerPageDelegate: AnyObject {
+  @MainActor
   func lightboxController(_ controller: LightboxController, didMoveToPage page: Int)
 }
 
-public protocol LightboxControllerDismissalDelegate: class {
-
+public protocol LightboxControllerDismissalDelegate: AnyObject {
+  @MainActor
   func lightboxControllerWillDismiss(_ controller: LightboxController)
 }
 
-public protocol LightboxControllerTouchDelegate: class {
-
+public protocol LightboxControllerTouchDelegate: AnyObject {
+  @MainActor
   func lightboxController(_ controller: LightboxController, didTouch image: LightboxImage, at index: Int)
+}
+
+public protocol LightboxControllerTapDelegate: AnyObject {
+  @MainActor
+  func lightboxController(_ controller: LightboxController, didTap image: LightboxImage, at index: Int)
+  @MainActor
+  func lightboxController(_ controller: LightboxController, didDoubleTap image: LightboxImage, at index: Int)
+}
+
+public protocol LightboxControllerDeleteDelegate: AnyObject {
+  @MainActor
+  func lightboxController(_ controller: LightboxController, willDeleteAt index: Int)
 }
 
 open class LightboxController: UIViewController {
@@ -139,9 +151,11 @@ open class LightboxController: UIViewController {
     }
   }
 
-  open weak var pageDelegate: LightboxControllerPageDelegate?
-  open weak var dismissalDelegate: LightboxControllerDismissalDelegate?
-  open weak var imageTouchDelegate: LightboxControllerTouchDelegate?
+  open weak var pageDelegate: (any LightboxControllerPageDelegate)?
+  open weak var dismissalDelegate: (any LightboxControllerDismissalDelegate)?
+  open weak var imageTouchDelegate: (any LightboxControllerTouchDelegate)?
+  open weak var imageTapDelegate: (any LightboxControllerTapDelegate)?
+  open weak var imageDeleteDelegate: (any LightboxControllerDeleteDelegate)?
   open internal(set) var presented = false
   open fileprivate(set) var seen = false
 
@@ -169,9 +183,13 @@ open class LightboxController: UIViewController {
   open override func viewDidLoad() {
     super.viewDidLoad()
 
+    // 9 July 2020: @3lvis
+    // Lightbox hasn't been optimized to be used in presentation styles other than fullscreen.
+    modalPresentationStyle = .fullScreen
+    
     statusBarHidden = UIApplication.shared.isStatusBarHidden
 
-    view.backgroundColor = UIColor.black
+    view.backgroundColor = LightboxConfig.imageBackgroundColor
     transitionManager.lightboxController = self
     transitionManager.scrollView = scrollView
     transitioningDelegate = transitionManager
@@ -182,14 +200,6 @@ open class LightboxController: UIViewController {
     configurePages(initialImages)
 
     goTo(initialPage, animated: false)
-  }
-
-  open override func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
-    if !presented {
-      presented = true
-      configureLayout(view.bounds.size)
-    }
   }
 
   open override func viewDidLayoutSubviews() {
@@ -212,6 +222,11 @@ open class LightboxController: UIViewController {
       width: view.bounds.width,
       height: 100
     )
+    
+    if !presented {
+      presented = true
+      configureLayout(view.bounds.size)
+    }
   }
 
   open override var prefersStatusBarHidden: Bool {
@@ -220,7 +235,7 @@ open class LightboxController: UIViewController {
 
   // MARK: - Rotation
 
-  override open func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+  override open func viewWillTransition(to size: CGSize, with coordinator: any UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
 
     coordinator.animate(alongsideTransition: { _ in
@@ -417,6 +432,14 @@ extension LightboxController: PageViewDelegate {
     let visible = (headerView.alpha == 1.0)
     toggleControls(pageView: pageView, visible: !visible)
   }
+    
+  func pageViewDidTap(_ pageView: PageView) {
+    imageTapDelegate?.lightboxController(self, didTap: images[currentPage], at: currentPage)
+  }
+    
+  func pageViewDidDoubleTap(_ pageView: PageView) {
+    imageTapDelegate?.lightboxController(self, didDoubleTap: images[currentPage], at: currentPage)
+  }
 }
 
 // MARK: - HeaderViewDelegate
@@ -428,6 +451,8 @@ extension LightboxController: HeaderViewDelegate {
     
     self.deleteHandler?()
 
+    imageDeleteDelegate?.lightboxController(self, willDeleteAt: currentPage)
+      
     guard numberOfPages != 1 else {
         pageViews.removeAll()
 //      self.headerView(headerView, didPressCloseButton: headerView.closeButton)
@@ -447,6 +472,7 @@ extension LightboxController: HeaderViewDelegate {
       currentPage -= 1
     }
 
+    self.initialImages.remove(at: prevIndex)
     self.pageViews.remove(at: prevIndex).removeFromSuperview()
 
     DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.5) {
