@@ -1,7 +1,7 @@
 import UIKit
 
-public protocol InfoLabelDelegate: AnyObject {
-  @MainActor
+public protocol InfoLabelDelegate: class {
+
   func infoLabel(_ infoLabel: InfoLabel, didExpand expanded: Bool)
 }
 
@@ -20,7 +20,7 @@ open class InfoLabel: UILabel {
     return "... \(LightboxConfig.InfoLabel.ellipsisText)"
   }
 
-  open weak var delegate: (any InfoLabelDelegate)?
+  open weak var delegate: InfoLabelDelegate?
   fileprivate var shortText = ""
 
   var fullText: String {
@@ -129,12 +129,12 @@ open class InfoLabel: UILabel {
     return string.boundingRect(
       with: CGSize(width: bounds.size.width, height: CGFloat.greatestFiniteMagnitude),
       options: [.usesLineFragmentOrigin, .usesFontLeading],
-      attributes: [NSAttributedString.Key.font: font!],
+      attributes: [NSAttributedString.Key.font: font],
       context: nil).height
   }
 
   fileprivate func numberOfLines(_ string: String) -> Int {
-    let lineHeight = "A".size(withAttributes: [NSAttributedString.Key.font: font!]).height
+    let lineHeight = "A".size(withAttributes: [NSAttributedString.Key.font: font]).height
     let totalHeight = heightForString(string)
 
     return Int(totalHeight / lineHeight)

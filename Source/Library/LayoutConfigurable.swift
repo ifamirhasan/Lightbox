@@ -1,4 +1,4 @@
-protocol LayoutConfigurable: AnyObject {
-  @MainActor
+protocol LayoutConfigurable: class {
+
   func configureLayout()
 }

@@ -96,11 +96,11 @@ class LightboxTransition: UIPercentDrivenInteractiveTransition {
 
 extension LightboxTransition: UIViewControllerAnimatedTransitioning {
 
-  func transitionDuration(using transitionContext: (any UIViewControllerContextTransitioning)?) -> TimeInterval {
+  func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
     return 0.25
   }
 
-  func animateTransition(using transitionContext: any UIViewControllerContextTransitioning) {
+  func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
     let container = transitionContext.containerView
 
     guard let fromView = transitionContext.view(forKey: UITransitionContextViewKey.from),
@@ -133,23 +133,23 @@ extension LightboxTransition: UIViewControllerAnimatedTransitioning {
 
 extension LightboxTransition: UIViewControllerTransitioningDelegate {
 
-  func animationController(forDismissed dismissed: UIViewController) -> (any UIViewControllerAnimatedTransitioning)? {
+  func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
     dismissing = true
     return self
   }
 
   func animationController(forPresented presented: UIViewController,
                            presenting: UIViewController,
-                           source: UIViewController) -> (any UIViewControllerAnimatedTransitioning)? {
+                           source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
     dismissing = false
     return self
   }
 
-  func interactionControllerForDismissal(using animator: any UIViewControllerAnimatedTransitioning) -> (any UIViewControllerInteractiveTransitioning)? {
+  func interactionControllerForDismissal(using animator: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
     return interactive ? self : nil
   }
 
-  func interactionControllerForPresentation(using animator: any UIViewControllerAnimatedTransitioning) -> (any UIViewControllerInteractiveTransitioning)? {
+  func interactionControllerForPresentation(using animator: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
     return interactive ? self : nil
   }
 }

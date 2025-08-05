@@ -1,18 +1,12 @@
 import UIKit
 
-protocol PageViewDelegate: AnyObject {
-  @MainActor
+protocol PageViewDelegate: class {
+
   func pageViewDidZoom(_ pageView: PageView)
-  @MainActor
   func remoteImageDidLoad(_ image: UIImage?, imageView: UIImageView)
-  @MainActor
   func pageView(_ pageView: PageView, didTouchPlayButton videoURL: URL)
-  @MainActor
   func pageViewDidTouch(_ pageView: PageView)
-  @MainActor
-  func pageViewDidTap(_ pageView: PageView)
-  @MainActor
-  func pageViewDidDoubleTap(_ pageView: PageView)}
+}
 
 class PageView: UIScrollView {
 
@@ -28,20 +22,8 @@ class PageView: UIScrollView {
   lazy var playButton: UIButton = {
     let button = UIButton(type: .custom)
     button.frame.size = CGSize(width: 60, height: 60)
-    var buttonImage = AssetManager.image("lightbox_play")
-    
-    // Note by Elvis Nuñez on Mon 22 Jun 08:06
-    // When using SPM you might find that assets are note included. This is a workaround to provide default assets
-    // under iOS 13 so using SPM can work without problems.
-    if #available(iOS 13.0, *) {
-        if buttonImage == nil {
-            buttonImage = UIImage(systemName: "play.circle.fill")
-        }
-    }
-
-    button.setBackgroundImage(buttonImage, for: UIControl.State())
+    button.setBackgroundImage(AssetManager.image("lightbox_play"), for: UIControl.State())
     button.addTarget(self, action: #selector(playButtonTouched(_:)), for: .touchUpInside)
-    button.tintColor = .white
 
     button.layer.shadowOffset = CGSize(width: 1, height: 1)
     button.layer.shadowColor = UIColor.gray.cgColor
@@ -55,7 +37,7 @@ class PageView: UIScrollView {
 
   var image: LightboxImage
   var contentFrame = CGRect.zero
-  weak var pageViewDelegate: (any PageViewDelegate)?
+  weak var pageViewDelegate: PageViewDelegate?
 
   var hasZoomed: Bool {
     return zoomScale != 1.0
@@ -152,12 +134,10 @@ class PageView: UIScrollView {
     let rectToZoomTo = CGRect(x: x, y: y, width: width, height: height)
 
     zoom(to: rectToZoomTo, animated: true)
-    pageViewDelegate?.pageViewDidDoubleTap(self)
   }
 
   @objc func viewTapped(_ recognizer: UITapGestureRecognizer) {
     pageViewDelegate?.pageViewDidTouch(self)
-    pageViewDelegate?.pageViewDidTap(self)
   }
 
   // MARK: - Layout
